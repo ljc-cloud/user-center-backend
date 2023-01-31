@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: user-center
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 生产环境需要把数据库地址改为  远程的数据库地址
+    url: jdbc:mysql://localhost:3306/user_center
+    username: root
+    password: 200110180919
+server:
+  port: 8080
+
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
