@@ -15,6 +15,18 @@ import javax.servlet.http.HttpServletRequest;
 public interface UserService extends IService<User> {
 
     /**
+     * 获取当前用户信息
+     * @return 脱敏用户
+     */
+    User getCurrentUser(String token);
+
+    /**
+     * 是否为管理员
+     * @return
+     */
+    boolean isAdminUser();
+
+    /**
      * 用户注册
      * @param userAccount 用户账号
      * @param password 用户密码
@@ -29,9 +41,9 @@ public interface UserService extends IService<User> {
      * @param userAccount 用户账号
      * @param password    用户密码
      * @param request
-     * @return 脱敏后的用户信息
+     * @return token
      */
-    User userLogin(String userAccount, String password, HttpServletRequest request);
+    String userLogin(String userAccount, String password, HttpServletRequest request);
 
     /**
      * 脱敏用户信息

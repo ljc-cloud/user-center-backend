@@ -2,6 +2,7 @@ package com.example.usercenter.service.impl;
 import java.nio.charset.StandardCharsets;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usercenter.common.ResultCode;
@@ -10,14 +11,21 @@ import com.example.usercenter.exception.BusinessException;
 import com.example.usercenter.model.entity.User;
 import com.example.usercenter.service.UserService;
 import com.example.usercenter.mapper.UserMapper;
+import com.example.usercenter.util.AuthUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.example.usercenter.common.UserHolder.USER_THREAD;
+import static com.example.usercenter.constant.UserConstant.EXPIRE_TIME;
+import static com.example.usercenter.constant.UserConstant.VALIDATE_PATTERN;
 
 /**
  * 用户服务实现类
@@ -28,10 +36,36 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
+
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     /**
      * 盐值，混淆密码
      */
     private static final String SALT = "ljc";
+
+    @Override
+    public User getCurrentUser(String token) {
+        Long userId = AuthUtils.getUserId(token);
+        String userJson = stringRedisTemplate.opsForValue().get(UserConstant.LOGIN_USER_STATE + userId);
+        if (userJson == null) {
+            throw new BusinessException(ResultCode.NOT_LOGIN);
+        }
+        User user = JSONUtil.toBean(userJson, User.class);
+        return getSafetyUser(user);
+    }
+
+    @Override
+    public boolean isAdminUser() {
+        String userJson = stringRedisTemplate.opsForValue().get(UserConstant.LOGIN_USER_STATE + USER_THREAD.get());
+        if (userJson == null) {
+            return false;
+        }
+        User safeUser = JSONUtil.toBean(userJson, User.class);
+        return safeUser.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
 
     @Override
     public long userRegister(String userAccount, String password, String checkPassword, String planetCode) {
@@ -48,8 +82,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ResultCode.PARAMS_ERROR, "用户密码过短");
         }
         // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',//[//].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\[\\\\]_ \\\\n]";
-        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+
+        Matcher matcher = Pattern.compile(VALIDATE_PATTERN).matcher(userAccount);
         if (matcher.find()) {
             throw new BusinessException(ResultCode.PARAMS_ERROR, "账户不能包含特殊字符");
         }
@@ -99,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User userLogin(String userAccount, String password, HttpServletRequest request) {
+    public String userLogin(String userAccount, String password, HttpServletRequest request) {
         // 校验
         if (StringUtils.isAnyBlank(userAccount, password)) {
             throw new BusinessException(ResultCode.PARAMS_ERROR, "请求参数为空");
@@ -113,8 +147,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ResultCode.PARAMS_ERROR, "密码过短");
         }
         // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',//[//].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\[\\\\]_ \\\\n]";
-        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+        Matcher matcher = Pattern.compile(VALIDATE_PATTERN).matcher(userAccount);
         if (matcher.find()) {
             throw new BusinessException(ResultCode.PARAMS_ERROR, "账户不能包含特殊字符");
         }
@@ -134,9 +167,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User safetyUser = getSafetyUser(user);
 
         // 记录用户登录态
-        request.getSession().setAttribute(UserConstant.LOGIN_USER_STATE, safetyUser);
+        String token = AuthUtils.createToken(user.getId());
+        String expire = String.valueOf(System.currentTimeMillis() + EXPIRE_TIME);
+        // 设置token过期时间
+        stringRedisTemplate.opsForValue().set(UserConstant.EXPIRE_KEY + token, expire);
+        // 将用户信息存入redis
+        stringRedisTemplate.opsForValue().set(UserConstant.LOGIN_USER_STATE + user.getId(), JSONUtil.toJsonStr(safetyUser));
 
-        return safetyUser;
+        return token;
     }
 
     @Override
@@ -165,7 +203,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (request == null) {
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "系统错误");
         }
-        request.getSession().removeAttribute(UserConstant.LOGIN_USER_STATE);
+//        request.getSession().removeAttribute(UserConstant.LOGIN_USER_STATE);
+        stringRedisTemplate.delete(UserConstant.LOGIN_USER_STATE + USER_THREAD.get());
+        stringRedisTemplate.delete(UserConstant.EXPIRE_KEY + request.getHeader("Authorization"));
         return 1;
     }
 }

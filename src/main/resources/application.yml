@@ -9,6 +9,11 @@ spring:
     # 设置session过期时间
   session:
     timeout: 86400
+  redis:
+    host: 192.168.37.150
+    password: 123
+    port: 6379
+
 server:
   port: 8080
   servlet:
@@ -23,6 +28,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       logic-delete-field: isDeleted
+
 
 logging:
   pattern:
