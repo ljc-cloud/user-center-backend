@@ -19,12 +19,12 @@ public class CommonConfig implements WebMvcConfigurer {
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 添加登录校验拦截器
+     * 添加拦截器
      * @param registry
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthInterceptor(stringRedisTemplate)).
-                excludePathPatterns("/**/login", "/**/register");
+                excludePathPatterns("/**/login", "/**/register").order(1);
     }
 }

@@ -8,6 +8,7 @@ import cn.hutool.jwt.signers.JWTSigner;
 import cn.hutool.jwt.signers.JWTSignerUtil;
 
 /**
+ * JWT
  * @author _LJC
  */
 public class AuthUtils {
