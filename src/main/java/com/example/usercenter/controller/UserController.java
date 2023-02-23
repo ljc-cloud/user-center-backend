@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.usercenter.common.BaseResponse;
 import com.example.usercenter.common.ResultCode;
 import com.example.usercenter.common.ResultUtils;
-import com.example.usercenter.constant.UserConstant;
 import com.example.usercenter.exception.BusinessException;
 import com.example.usercenter.model.entity.User;
 import com.example.usercenter.model.request.UserLoginRequest;
@@ -124,15 +123,4 @@ public class UserController {
         return ResultUtils.success(updateRes);
     }
 
-//    /**
-//     * 是否为管理员
-//     *
-//     * @param request
-//     * @return
-//     */
-//    private boolean isAdmin(HttpServletRequest request) {
-//        Object userObj = request.getSession().getAttribute(UserConstant.LOGIN_USER_STATE);
-//        User user = (User) userObj;
-//        return user != null && user.getUserRole() == UserConstant.ADMIN_ROLE;
-//    }
 }
