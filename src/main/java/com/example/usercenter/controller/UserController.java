@@ -2,6 +2,7 @@ package com.example.usercenter.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usercenter.common.BaseResponse;
 import com.example.usercenter.common.ResultCode;
 import com.example.usercenter.common.ResultUtils;
@@ -13,12 +14,15 @@ import com.example.usercenter.model.request.UserSearchRequest;
 import com.example.usercenter.model.request.UserUpdateRequest;
 import com.example.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.example.usercenter.constant.UserConstant.PAGE_SIZE;
 
 /**
  * 用户接口
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin("http://localhost:5173")
 public class UserController {
 
     @Resource
@@ -34,9 +39,7 @@ public class UserController {
 
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        System.out.println(token);
-        User safeUser = userService.getCurrentUser(token);
+        User safeUser = userService.getCurrentUser(request);
         return ResultUtils.success(safeUser);
     }
 
@@ -57,7 +60,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public BaseResponse<String> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR, "请求参数为空");
         }
@@ -66,8 +69,8 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ResultCode.PARAMS_ERROR, "请求参数为空");
         }
-        String token = userService.userLogin(userAccount, userPassword, request);
-        return ResultUtils.success(token);
+        User safeUser = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(safeUser);
     }
 
     @PostMapping("/logout")
@@ -75,9 +78,9 @@ public class UserController {
         return ResultUtils.success(userService.userLogout(request));
     }
 
-    @GetMapping("/search")
-    public BaseResponse<List<User>> searchUsers(UserSearchRequest searchRequest) {
-        if (!userService.isAdminUser()) {
+    @GetMapping("/admin/search")
+    public BaseResponse<List<User>> adminSearchUsers(UserSearchRequest searchRequest, HttpServletRequest request) {
+        if (!userService.isAdminUser(request)) {
             throw new BusinessException(ResultCode.NO_AUTH, "该用户不是管理员");
         }
         String username = searchRequest.getUsername();
@@ -104,23 +107,45 @@ public class UserController {
         return ResultUtils.success(userCollect);
     }
 
-    @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUser(@RequestBody String id) {
-        if (!userService.isAdminUser()) {
+    @GetMapping("/search/tags")
+    public BaseResponse<Page<User>> searchUserByTags(long pageNum, @RequestParam(required = false) List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ResultCode.PARAMS_ERROR);
+        }
+        return ResultUtils.success(userService.searchUserByTags(pageNum, tagNameList));
+    }
+
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageNum, HttpServletRequest request) {
+        Page<User> userPage = userService.recommendUser(pageNum, request);
+        return ResultUtils.success(userPage);
+    }
+    @PostMapping("/admin/delete")
+    public BaseResponse<Boolean> adminDeleteUser(@RequestBody String id, HttpServletRequest request) {
+        if (!userService.isAdminUser(request)) {
             throw new BusinessException(ResultCode.NO_AUTH, "该用户不是管理员");
         }
         boolean res = userService.removeById(id);
         return ResultUtils.success(res);
     }
 
-    @PutMapping("/update")
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest updateRequest) {
-        if (!userService.isAdminUser()) {
+    @PutMapping("/admin/update")
+    public BaseResponse<Boolean> adminUpdateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
+        if (!userService.isAdminUser(request)) {
             throw new BusinessException(ResultCode.NO_AUTH, "该用户不是管理员");
         }
         User user = BeanUtil.copyProperties(updateRequest, User.class);
         boolean updateRes = userService.updateById(user);
         return ResultUtils.success(updateRes);
+    }
+
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
+        if (user == null) {
+            throw new BusinessException(ResultCode.PARAMS_ERROR);
+        }
+        int result = userService.updateUser(user, request);
+        return ResultUtils.success(result);
     }
 
 }

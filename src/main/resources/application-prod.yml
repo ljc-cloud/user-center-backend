@@ -1,10 +1,12 @@
 spring:
   application:
     name: user-center
+  profiles:
+    active: prod
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 生产环境需要把数据库地址改为  远程的数据库地址
-    url: jdbc:mysql://localhost:3306/user_center
+    # 生产环境需要把数据库地址改为远程的数据库地址
+    url: jdbc:mysql://47.120.39.59/user_center
     username: root
     password: 200110180919
 server:

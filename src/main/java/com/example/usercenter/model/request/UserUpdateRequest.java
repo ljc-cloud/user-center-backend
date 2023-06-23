@@ -2,11 +2,16 @@ package com.example.usercenter.model.request;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author _LJC
  */
 @Data
-public class UserUpdateRequest {
+public class UserUpdateRequest implements Serializable {
+
+    private static final long serialVersionUID = 8943523884523L;
+
     private Long id;
     /**
      * 用户名

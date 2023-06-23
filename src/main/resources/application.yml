@@ -1,6 +1,8 @@
 spring:
   application:
     name: user-center
+  profiles:
+    active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/user_center
@@ -9,15 +11,23 @@ spring:
     # 设置session过期时间
   session:
     timeout: 86400
+    store-type: redis
   redis:
     host: 192.168.37.150
     password: 123
     port: 6379
+    database: 0
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher  # 兼容Swagger2
 
 server:
   port: 8080
   servlet:
     context-path: /api
+    session:
+      cookie:
+        domain: localhost
 
 mybatis-plus:
   configuration:
@@ -28,8 +38,6 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       logic-delete-field: isDeleted
-
-
 logging:
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS

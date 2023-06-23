@@ -9,6 +9,8 @@ public interface UserConstant {
 
     String LOGIN_USER_STATE = "loginUser:";
 
+    long PAGE_SIZE = 40;
+
     // ------ 权限 ------
 
     /**
@@ -23,6 +25,6 @@ public interface UserConstant {
     String EXPIRE_KEY = "expire:";
     long EXPIRE_TIME = 1000 * 60 * 60 * 10;
 
-    String VALIDATE_PATTERN = "[`~!@#$%^&*()+=|{}':;',//[//].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\[\\\\] \\\\n]";
+    String VALIDATE_PATTERN = "[`~!@#$%^&*()+=|{}':;',//[//].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？\\\\[\\\\] \\\\]";
 
 }

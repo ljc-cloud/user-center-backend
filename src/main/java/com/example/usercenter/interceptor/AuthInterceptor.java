@@ -3,6 +3,7 @@ package com.example.usercenter.interceptor;
 import com.example.usercenter.common.UserHolder;
 import com.example.usercenter.constant.UserConstant;
 import com.example.usercenter.util.AuthUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -31,10 +32,13 @@ public class AuthInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         Long userId = AuthUtils.getUserId(token);
         UserHolder.setUserId(userId);
+        if (StringUtils.isBlank(token)) {
+            return false;
+        }
 
-        String expireTime = stringRedisTemplate.opsForValue().get(UserConstant.EXPIRE_KEY + token);
-        long expire1 = Long.parseLong(expireTime);
-        if (System.currentTimeMillis() > expire1) {
+        String expireTimeStr = stringRedisTemplate.opsForValue().get(UserConstant.EXPIRE_KEY + token);
+        long expireTime = Long.parseLong(expireTimeStr);
+        if (System.currentTimeMillis() > expireTime) {
             return false;
         }
         String expire2 = String.valueOf(System.currentTimeMillis() + EXPIRE_TIME);

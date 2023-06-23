@@ -1,7 +1,11 @@
 package com.example.usercenter.service;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
+import cn.hutool.core.util.ArrayUtil;
 import com.example.usercenter.model.entity.User;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +78,11 @@ public class UserServiceTest {
         checkPassword = "12345678";
         res = userService.userRegister(account, password, checkPassword,"1234");
         Assertions.assertTrue(res > 0);
+    }
+
+    @Test
+    public void testSearchByTags() {
+//        List<User> userList = userService.searchUserByTags(Arrays.asList("java", "C#"));
+//        Assertions.assertNotNull(userList);
     }
 }

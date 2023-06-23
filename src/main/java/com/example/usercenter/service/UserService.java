@@ -1,10 +1,12 @@
 package com.example.usercenter.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usercenter.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
 * @author _LJC
@@ -18,13 +20,14 @@ public interface UserService extends IService<User> {
      * 获取当前用户信息
      * @return 脱敏用户
      */
-    User getCurrentUser(String token);
+
+    User getCurrentUser(HttpServletRequest request);
 
     /**
      * 是否为管理员
      * @return
      */
-    boolean isAdminUser();
+    boolean isAdminUser(HttpServletRequest request);
 
     /**
      * 用户注册
@@ -43,7 +46,7 @@ public interface UserService extends IService<User> {
      * @param request
      * @return token
      */
-    String userLogin(String userAccount, String password, HttpServletRequest request);
+    User userLogin(String userAccount, String password, HttpServletRequest request);
 
     /**
      * 脱敏用户信息
@@ -59,4 +62,28 @@ public interface UserService extends IService<User> {
      * @return
      */
     int userLogout(HttpServletRequest request);
+
+    /**
+     * 根据标签搜索用户
+     * @param tagNameList
+     * @return
+     */
+    Page<User> searchUserByTags(long pageNum, List<String> tagNameList);
+
+
+    /**
+     * 更新用户
+     * @param user 传来的用户信息
+     * @param request 获取当前登录用户信息
+     * @return 结果
+     */
+    int updateUser(User user, HttpServletRequest request);
+
+    /**
+     * 验证用户的账户和密码是否符合规定
+     * @return
+     */
+    boolean validateUser(String userAccount, String userPassword);
+
+    Page<User> recommendUser(long pageNum, HttpServletRequest request);
 }
