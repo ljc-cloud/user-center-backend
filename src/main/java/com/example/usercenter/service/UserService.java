@@ -1,9 +1,11 @@
 package com.example.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usercenter.common.BaseResponse;
 import com.example.usercenter.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -86,4 +88,6 @@ public interface UserService extends IService<User> {
     boolean validateUser(String userAccount, String userPassword);
 
     Page<User> recommendUser(long pageNum, HttpServletRequest request);
+
+    boolean updateUserAvatar(MultipartFile file, HttpServletRequest request);
 }

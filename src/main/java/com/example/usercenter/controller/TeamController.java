@@ -13,12 +13,14 @@ import com.example.usercenter.model.entity.User;
 import com.example.usercenter.model.request.TeamAddRequest;
 import com.example.usercenter.model.request.TeamJoinRequest;
 import com.example.usercenter.model.request.TeamQuitRequest;
+import com.example.usercenter.model.vo.TeamVO;
 import com.example.usercenter.service.TeamService;
 import com.example.usercenter.service.UserService;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户接口
@@ -37,7 +39,7 @@ public class TeamController {
     private TeamService teamService;
 
     @PostMapping("/add")
-    public BaseResponse<Long> addTeam(TeamAddRequest teamAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR);
         }
@@ -61,7 +63,7 @@ public class TeamController {
     }
 
     @PutMapping("/update")
-    public BaseResponse<Boolean> updateTeam(Team team) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody Team team) {
         if (team == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR);
         }
@@ -73,29 +75,28 @@ public class TeamController {
     }
 
     @GetMapping("/get")
-    public BaseResponse<Team> getTeamById(long id) {
+    public BaseResponse<TeamVO> getTeamById(long id) {
         Team team = teamService.getById(id);
         if (team == null) {
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "不存在该队伍");
         }
-        return ResultUtils.success(team);
+        TeamVO teamVO = new TeamVO();
+        BeanUtil.copyProperties(team, teamVO);
+        return ResultUtils.success(teamVO);
     }
 
-    @GetMapping("/get/list")
-    public BaseResponse<List<Team>> getTeamList(TeamQuery teamQuery) {
-        if (teamQuery == null) {
-            throw new BusinessException(ResultCode.PARAMS_ERROR);
-        }
-        Team team = new Team();
-        BeanUtil.copyProperties(teamQuery, team);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        List<Team> teamList = teamService.list(queryWrapper);
-        return ResultUtils.success(teamList);
+    @GetMapping("/list")
+    public BaseResponse<List<TeamVO>> getTeamList(@RequestBody(required = false) TeamQuery teamQuery) {
+//        if (teamQuery == null) {
+//            throw new BusinessException(ResultCode.PARAMS_ERROR);
+//        }
+        List<TeamVO> teamVOList = teamService.getTeamList(teamQuery);
+        return ResultUtils.success(teamVOList);
     }
 
 
-    @GetMapping("/get/page")
-    public BaseResponse<Page<Team>> getTeamListByPage(TeamQuery teamQuery) {
+    @GetMapping("/page")
+    public BaseResponse<Page<Team>> getTeamListByPage(@RequestBody TeamQuery teamQuery) {
         if (teamQuery == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR);
         }
@@ -107,7 +108,7 @@ public class TeamController {
     }
 
     @PostMapping("/join")
-    public BaseResponse<Boolean> joinTeam(TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
         if (teamJoinRequest == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR);
         }
@@ -120,7 +121,7 @@ public class TeamController {
     }
 
     @PostMapping("/quit")
-    public BaseResponse<Boolean> quitTeam(TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
         if (teamQuitRequest == null) {
             throw new BusinessException(ResultCode.PARAMS_ERROR);
         }

@@ -34,6 +34,11 @@ class UserCenterApplicationTests {
     @Resource
     private UserService userService;
 
+
+    @Test
+    void testUUID() {
+        System.out.println(cn.hutool.core.lang.UUID.randomUUID());
+    }
     @Test
     void testDigest() {
         String encryptPassword = DigestUtils.md5DigestAsHex(("ljc" + "12345678").getBytes(StandardCharsets.UTF_8));

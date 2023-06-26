@@ -1,9 +1,11 @@
 package com.example.usercenter.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usercenter.common.ResultCode;
+import com.example.usercenter.dto.TeamQuery;
 import com.example.usercenter.exception.BusinessException;
 import com.example.usercenter.mapper.TeamMapper;
 import com.example.usercenter.model.entity.Team;
@@ -12,6 +14,7 @@ import com.example.usercenter.model.entity.UserTeam;
 import com.example.usercenter.model.enums.TeamStatus;
 import com.example.usercenter.model.request.TeamJoinRequest;
 import com.example.usercenter.model.request.TeamQuitRequest;
+import com.example.usercenter.model.vo.TeamVO;
 import com.example.usercenter.service.TeamService;
 import com.example.usercenter.service.UserTeamService;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.example.usercenter.constant.TeamConstant.TEAM_FULL;
 
@@ -193,6 +197,23 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         queryWrapper.eq("team_id", teamId).eq("user_id", userId);
         long teamCount = userTeamService.count(queryWrapper);
         return teamCount > 0;
+    }
+
+    @Override
+    public List<TeamVO> getTeamList(TeamQuery teamQuery) {
+        Team team = new Team();
+        BeanUtil.copyProperties(teamQuery, team);
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
+        List<TeamVO> teamVOList = this.list(queryWrapper).stream().map(item -> {
+            TeamVO teamVo = new TeamVO();
+            BeanUtil.copyProperties(item, teamVo);
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", item.getId());
+            long teamUserCount = userTeamService.count(userTeamQueryWrapper);
+            teamVo.setJoinNum((int) teamUserCount);
+            return teamVo;
+        }).collect(Collectors.toList());
+        return teamVOList;
     }
 }
 

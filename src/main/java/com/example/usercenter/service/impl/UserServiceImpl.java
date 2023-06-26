@@ -3,15 +3,18 @@ import java.nio.charset.StandardCharsets;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.usercenter.common.BaseResponse;
 import com.example.usercenter.common.ResultCode;
 import com.example.usercenter.constant.UserConstant;
 import com.example.usercenter.exception.BusinessException;
 import com.example.usercenter.model.entity.User;
 import com.example.usercenter.service.UserService;
 import com.example.usercenter.mapper.UserMapper;
+import com.example.usercenter.util.UploadUtil;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -294,6 +298,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.info("redis set key error", e);
         }
         return userPage;
+    }
+
+    @Override
+    public boolean updateUserAvatar(MultipartFile file, HttpServletRequest request) {
+        User currentUser = this.getCurrentUser(request);
+        String uuid = UUID.randomUUID().toString();
+        String fileName = uuid + "-" + file.getOriginalFilename();
+        String url = UploadUtil.uploadImage(file, fileName);
+        currentUser.setAvatarUrl(url);
+        boolean update = this.updateById(currentUser);
+        if (!update) {
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "用户头像更新失败");
+        }
+        User userForSession = this.getById(currentUser.getId());
+        request.getSession().setAttribute(LOGIN_USER_STATE, userForSession);
+        return true;
     }
 }
 

@@ -20,6 +20,10 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher  # 兼容Swagger2
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 200MB
 
 server:
   port: 8080

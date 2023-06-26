@@ -1,10 +1,14 @@
 package com.example.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.usercenter.dto.TeamQuery;
 import com.example.usercenter.model.entity.Team;
 import com.example.usercenter.model.entity.User;
 import com.example.usercenter.model.request.TeamJoinRequest;
 import com.example.usercenter.model.request.TeamQuitRequest;
+import com.example.usercenter.model.vo.TeamVO;
+
+import java.util.List;
 
 /**
 * @author _LJC
@@ -44,4 +48,6 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     boolean isUserInTeam(Long teamId, Long userId);
+
+    List<TeamVO> getTeamList(TeamQuery teamQuery);
 }

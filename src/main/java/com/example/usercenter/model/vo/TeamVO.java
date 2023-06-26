@@ -1,13 +1,11 @@
-package com.example.usercenter.model.request;
+package com.example.usercenter.model.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
 @Data
-public class TeamAddRequest {
+public class TeamVO {
     /**
      * id
      */
@@ -19,7 +17,7 @@ public class TeamAddRequest {
     private String name;
 
     /**
-     *
+     * 队伍描述
      */
     private String description;
 
@@ -29,9 +27,13 @@ public class TeamAddRequest {
     private Integer maxNum;
 
     /**
+     * 队伍已加入人数
+     */
+    private Integer joinNum;
+
+    /**
      * 队伍过期时间
      */
-    @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date expireTime;
 
     /**
@@ -40,7 +42,18 @@ public class TeamAddRequest {
     private Integer status;
 
     /**
-     * 密码
+     * 用户id（队长id）
      */
-    private String password;
+    private Long userId;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 创建人用户
+     */
+//    private UserVO createUser;
+
 }

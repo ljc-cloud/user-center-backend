@@ -13,9 +13,11 @@ import com.example.usercenter.model.request.UserRegisterRequest;
 import com.example.usercenter.model.request.UserSearchRequest;
 import com.example.usercenter.model.request.UserUpdateRequest;
 import com.example.usercenter.service.UserService;
+import com.example.usercenter.util.UploadUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -146,6 +148,12 @@ public class UserController {
         }
         int result = userService.updateUser(user, request);
         return ResultUtils.success(result);
+    }
+
+    @PostMapping("/updateAvatar")
+    public BaseResponse<Boolean> updateAvatar(@RequestBody MultipartFile file, HttpServletRequest request) {
+        boolean res = userService.updateUserAvatar(file, request);
+        return ResultUtils.success(res);
     }
 
 }
